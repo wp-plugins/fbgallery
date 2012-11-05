@@ -68,7 +68,7 @@ function fb_display_main($content) {
 	}
 	$albums = fb_get_album_by_month($curMonth,$curYear);
 	if(!$albums) {
-		if ($firstTime)
+		if (!$firstTime)
 		{
 			echo "<p>There are no albums.</p>";
 			return;

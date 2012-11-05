@@ -11,10 +11,8 @@ function SetupFBConnection()
       'secret' => $fbconfig['secret'],
       'cookie' => true,
     ));
-		fb_logdebug("fbconfig : Start : Auth Token : ".get_option('fbAppAuthToken'));
 		if(get_option('fbAppAuthToken'))
 		{
-			fb_logdebug("fbconfig : Start : setting access token");
     	$facebook -> setAccessToken(get_option('fbAppAuthToken'));
   	}
 

@@ -5,7 +5,7 @@ Plugin URI: http://www.amkd.com.au/wordpress/fbgallery/70
 Description: Imports your Facebook albums directly into WordPress. Updating the original Fotobook plugin by Aaron Harp this version now uses OpenGraph. Albums are now stored as posts rather than pages so that photos can be searched using wordpress search.
 Author: Caevan Sachinwalla
 Author URI: http://www.amkd.com.au/
-Version: 1.1
+Version: 1.2
 */
 
 /*
@@ -158,7 +158,6 @@ function FreeUpMemory()
 {
   if ($phpVersion5_3) 
   {
-fb_logdebug('php version is 5.3 or greater');
 		gc_collect_cycles();
   } 
 }	
@@ -340,7 +339,7 @@ function CreatePost($theAlbum, $thePhotoPostBodyStr)
 		'post_date' => date('Y-m-d H:i:s'),
 		'post_author' => $user_ID,
 		'post_type' => 'post',
-		'post_category' => array(get_cat_ID( $fb_albums_category ))
+		'post_category' => array($fb_albums_category )
 	);
 	$post_id = wp_insert_post($new_post);
 	return $post_id;
@@ -350,13 +349,11 @@ function CreatePost($theAlbum, $thePhotoPostBodyStr)
 function CheckForNewAlbums() {
 		global $wpdb;
 		
-			fb_logdebug('CheckForNewAlbums : start');
 		$totalAlbums = $this->CountAlbums(0);		
 		$albums = fb_get_album();
 		$totalStoredAlbums = count($albums);
 		$albumsToGet = $this->options['fb_max_albums'];
 
-		fb_logdebug('CheckForNewAlbums : totalStoredAlbums : '.$totalStoredAlbums);
 		if($totalStoredAlbums > 0 )
 		{
 			$latestDateStr =  fb_GetLastAlbumUpDate();
@@ -364,7 +361,6 @@ function CheckForNewAlbums() {
 			$options = get_option('fbgallery_plugin_options');
     	$fbPgID = $options['fb_fan_page_url'];
     	if (substr($fbPgID, -1)=='/') $fbPgID = substr($fbPgID, 0, -1);  $fbPgID = substr(strrchr($fbPgID, "/"), 1);
-			fb_logdebug('CheckForNewAlbums : b4 profile : '.$fbPgID);
 			$profile = $this->facebook->api("/".$fbPgID);
 			$ownerID = $profile['id'];
 //			$fqlStr = '/fql?q=SELECT modified FROM album WHERE owner='.$ownerID.' AND modified >'.$latestDateTime;
@@ -387,7 +383,6 @@ function CheckForNewAlbums() {
 				fb_logdebug('CheckForNewAlbums: No dates');
 			}			*/
 			$albumIDs = $this->facebook->api('/fql?q=SELECT+aid+FROM+album+WHERE+owner='.$ownerID.'+AND+modified>'.$latestDateTime);
-			fb_logdebug('CheckForNewAlbums: fql : returned');
 			$newAlbums = count($albumIDs['data']);
 			if($newAlbums > 0)
 			{
