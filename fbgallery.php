@@ -5,7 +5,7 @@ Plugin URI: http://www.amkd.com.au/wordpress/fbgallery/70
 Description: Imports your Facebook albums directly into WordPress. Updating the original Fotobook plugin by Aaron Harp this version now uses OpenGraph. Albums are now stored as posts rather than pages so that photos can be searched using wordpress search.
 Author: Caevan Sachinwalla
 Author URI: http://www.amkd.com.au/
-Version: 1.2
+Version: 1.3
 */
 
 /*
@@ -39,7 +39,7 @@ define('FB_STYLE_PATH', FB_PLUGIN_PATH.'styles/');
 define('FB_MANAGE_URL', (get_bloginfo('version') >= 1.0 ? 'media-new.php' : 'edit.php') .'?page=fbgallery/fbg-settings.php?tab=fbg_manage');
 define('FB_OPTIONS_URL', 'options-general.php?page=fbgallery/fbg-settings.php');
 define('FB_WEBSITE', 'http://www.amkd.com.au/wordpress/fbgallery/70');
-define('FB_VERSION', 1.00);
+define('FB_VERSION', 1.30);
 define('FB_TITLE','FB Gallery');
 
 // facebook configuration variables
@@ -62,7 +62,7 @@ function fbg_admin_scripts() {
 	wp_enqueue_script('fotobook-js', FB_PLUGIN_URL.'js/admin.js', array('jquery', 'jquery-ui-sortable'), FB_VERSION);
 }
 add_action('load-settings_page_fbgalleryplugin', 'fbg_admin_scripts');
-//add_action('admin_init', 'fbg_admin_scripts');
+add_action('admin_init', 'fbg_admin_scripts');
 
 
 function DoHTMLEncode($theCaption)
@@ -886,7 +886,7 @@ function fb_upgrade_tables() {
 
 
 function fb_add_pages() {
-		add_media_page('Media &rsaquo; FBGallery', 'FBGallery', 8,'fbgallery/fbg-settings.php?tab=fbg_manage' );
+		add_media_page('Media &rsaquo; FBGallery', 'FBGallery', 8,'fbg-display-management','fbg_display_management');
 	include_once('fbg-settings.php');
 	$optionsHook = 	add_options_page(__('FB Gallery Settings', 'fbgalleryplugin'),__('FB Gallery Settings', 'fbgalleryplugin'), 'manage_options',
 			'fbgalleryplugin', 'fbGalleryAdminHtmlPage');
@@ -898,6 +898,9 @@ function fb_add_pages() {
 function fb_action_link($actions) {
 	array_unshift($actions, '<a href="' . FB_OPTIONS_URL . '">Settings</a>');
 	return $actions;
+}
+function fbg_display_management() {
+	include("fbg-manage.php");
 }
 
 //---------------------//

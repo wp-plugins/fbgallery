@@ -76,8 +76,21 @@ Note: Height and width should be no bigger than the images you will be displayin
 You will need to install [jQuery Lightbox](http://wordpress.org/extend/plugins/jquery-lightbox-balupton-edition/)
 FBGallery has been coded to have the appropriate tags to work with jQuery Lightbox. 
 
+== Screenshots ==
+
+1. **FB Gallery Setting 1** - Facebook setting. 
+2. **FB Gallery Setting 2** - Display setting. 
+3. **Manage Albums** - Manage Albums.
+4. **Albums Display** - Albums Display.
+5. **Album Contents** - Album Contents.
 
 == Change Log ==
+= 1.3 =
+* Major bug fix media page not being displayed
+
+= 1.2 =
+* Major bug fix release incorrect category being assigned to album posts.
+
 = 1.1 =
 * Minor bug release add timeout feature and cached images.
 
@@ -85,6 +98,10 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 * First release
 
 == Upgrade Notice ==
+= 1.3 =
+Corrects an issue where the media page was not being displayed
+= 1.2 =
+Upgrade otherwise album post may not display
 = 1.1 =
 Added timeout feature and cached images.
 = 1.0 =
