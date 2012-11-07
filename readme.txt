@@ -85,6 +85,9 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 5. **Album Contents** - Album Contents.
 
 == Change Log ==
+= 1.4 =
+* Removed debug lines from album-main.php
+
 = 1.3 =
 * Major bug fix media page not being displayed
 
@@ -98,6 +101,8 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 * First release
 
 == Upgrade Notice ==
+= 1.4 =
+Corrects an issue where the album page was not loading
 = 1.3 =
 Corrects an issue where the media page was not being displayed
 = 1.2 =

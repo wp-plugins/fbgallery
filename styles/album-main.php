@@ -46,9 +46,7 @@ if(sizeof($albums) > 0):
 	<div id="fotobook-preview">
 	<div class="clear"></div>
 <?php
-			td_logdebug('B4 Last Album Date ');
 		$lastAlbumDate = fb_GetLastAlbumDate();
-			td_logdebug('Last Album Date = '.$lastAlbumDate);
 
 			remove_filter('the_content', 'seo_friendly_images', 100);
 			$titleStr = "Album Image";

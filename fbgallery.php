@@ -5,7 +5,7 @@ Plugin URI: http://www.amkd.com.au/wordpress/fbgallery/70
 Description: Imports your Facebook albums directly into WordPress. Updating the original Fotobook plugin by Aaron Harp this version now uses OpenGraph. Albums are now stored as posts rather than pages so that photos can be searched using wordpress search.
 Author: Caevan Sachinwalla
 Author URI: http://www.amkd.com.au/
-Version: 1.3
+Version: 1.4
 */
 
 /*
@@ -39,7 +39,7 @@ define('FB_STYLE_PATH', FB_PLUGIN_PATH.'styles/');
 define('FB_MANAGE_URL', (get_bloginfo('version') >= 1.0 ? 'media-new.php' : 'edit.php') .'?page=fbgallery/fbg-settings.php?tab=fbg_manage');
 define('FB_OPTIONS_URL', 'options-general.php?page=fbgallery/fbg-settings.php');
 define('FB_WEBSITE', 'http://www.amkd.com.au/wordpress/fbgallery/70');
-define('FB_VERSION', 1.30);
+define('FB_VERSION', 1.40);
 define('FB_TITLE','FB Gallery');
 
 // facebook configuration variables
