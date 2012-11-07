@@ -82,7 +82,7 @@ function DoHTMLEncode($theCaption)
 	function fb_logdebug($debugStr)
 	{
 		$debugLevel = FB_DEBUG_LEVEL;
-		get_option('fbgallery_settings_section');
+		$options = get_option('fbgallery_settings_section');
 		if($options['fb_debug_on'] == 'debugON')
 		{
 			$debugLevel = 1;
@@ -1332,9 +1332,57 @@ function fb_count_albums_by_year($year=2004) { // why 2004? Thats when facebook 
 	$toDateStr = $endYear."-1-01";
 	
 	$query .= "WHERE ";
-	$query .= "`created` >= '$fromDateStr' AND `created` < '$toDateStr'";
+	$query .= "`created` >= '$fromDateStr' AND `created` < '$toDateStr' ORDER BY `modified` ASC";
 	$numAlbums = $wpdb->get_var($query);
 	return $numAlbums;
+}
+// Gets album created dates for a particular year
+function fb_get_albums_created_by_year($year=2004) { // why 2004? Thats when facebook started.
+	global $wpdb;
+	
+
+	$query = 'SELECT `created` FROM `'.FB_ALBUM_TABLE.'` ';
+	$where = '';
+	if($year < 2004)
+	{
+		$startYear = 2004;
+	}
+	else
+	{
+		if($startYear > date('Y'))
+		{
+			$startYear = date('Y');
+		}
+		else
+		{
+			$startYear = $year;
+		}
+	}
+	$endYear = $startYear+1;
+	$fromDateStr = $startYear."-1-01";
+	$toDateStr = $endYear."-1-01";
+	
+	$query .= "WHERE ";
+	$query .= "`created` >= '$fromDateStr' AND `created` < '$toDateStr' ORDER BY `modified` ASC";
+	$results = $wpdb->get_results($query, ARRAY_A);
+	return $results;
+}
+
+function fbg_first_album_month($year)
+{
+	$numAlbums = fb_count_albums_by_year($year);
+	if($numAlbums > 0)
+	{
+		$albums = fb_get_albums_created_by_year($year);
+		$firstAlbum = $albums[0];
+    $datetimeArray = strptime($firstAlbum['created'], "%Y-%m-%d %H:%M:%S");
+
+ 		 return $datetimeArray['tm_mon'] + 1;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 // function removes all posts, and database table entries

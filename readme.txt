@@ -85,6 +85,8 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 5. **Album Contents** - Album Contents.
 
 == Change Log ==
+= 1.5 =
+* Fixed pagination isssue on album page, when selecting month with no albums.
 = 1.4 =
 * Removed debug lines from album-main.php
 
@@ -101,6 +103,8 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 * First release
 
 == Upgrade Notice ==
+= 1.5 = 
+Fixed pagination isssue on album page. Pagination by date is now optional, by default it is off. If you are using it you will have to turn it back on in the settings.
 = 1.4 =
 Corrects an issue where the album page was not loading
 = 1.3 =
@@ -111,12 +115,6 @@ Upgrade otherwise album post may not display
 Added timeout feature and cached images.
 = 1.0 =
 First release
-
-== Help Out! ==
-
-Here are a few ways you can help out (and encourage me to work on it =) ):
-
-First, you could sign up for a [Fatcow](http://www.fatcow.com/join/index.bml?AffID=642780) This the hosting I use, they have unlimited disk space and bandwidth, unlimited domains and amazing amount of flexibility and control over you account for a really low rate of $3.37/MO.
 
 == Donate ==
 If you are satisfied with your hosting and want to help out, you can send some cash over [Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=YSM3KMT3B5AQE).

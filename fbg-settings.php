@@ -105,6 +105,17 @@ function setting_textfn($args = array()) {
   			echo '<input id="plugin_text_string" name="fbgallery_settings_section['.$fbgid.']" type="checkbox" value="useCache" />';
 			}
 	}
+	else if($fbgid == "fb_date_pagination_on")
+	{
+			if((isset($options[$fbgid])) && ($options[$fbgid] == 'datePageOn'))
+			{
+  			echo '<input id="plugin_text_string" name="fbgallery_settings_section['.$fbgid.']" type="checkbox" value="datePageOn" checked="checked" />';
+			}
+			else
+			{
+  			echo '<input id="plugin_text_string" name="fbgallery_settings_section['.$fbgid.']" type="checkbox" value="datePageOn" />';
+			}
+	}
 	else if($fbgid == "fb_debug_on")
 	{
 			if((isset($options[$fbgid])) && ($options[$fbgid] == 'debugOn'))
@@ -189,6 +200,7 @@ function  section_text_fn($desc) {
 	register_setting( 'fbgallery_settings_section', 'fbgallery_settings_section', 'plugin_options_validate' );
 	add_settings_section('fbgallery_option_section', 'Display Settings', 'section_text_fn','fbgalleryplugin_option');
 	add_settings_field('fbgplugin__albums_page', 'Album Page', 'setting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_albums_page', 'fgbOptionHelp' =>'Select the page you want to use to display the photo albums' ));
+	add_settings_field('fbgplugin_date_pagination', 'Display Albums by Date', 'setting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_date_pagination_on', 'fgbOptionHelp' =>' Displaying albums by date will enable pagination through albums by date' ));
 	add_settings_field('fbgplugin_albums_per_page', 'Albums Per Page', 'setting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_albums_per_page', 'fgbOptionHelp' =>' Number of albums to display on each page of the main gallery. Set to \'0\' to show all.' ));
 	add_settings_field('fbgplugin_albums_category', 'Album Category', 'setting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_albums_category', 'fgbOptionHelp' =>' Each Album is displayed as a Post. Select the category for all album posts' ));
 	add_settings_field('fbgplugin_number_rows', 'Number of Rows', 'setting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_number_rows', 'fgbOptionHelp' =>' Set to \'0\' to display all.' ));

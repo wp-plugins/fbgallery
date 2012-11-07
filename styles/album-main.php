@@ -1,5 +1,6 @@
 <div class="fotobook-subheader">
   <table id="fotobook-main">
+<?php if($datePagination) : ?>
 	 	<tr>
  			<td>
 	 			<div style="position:relative">
@@ -22,6 +23,7 @@
 				</div>
 			</td>
 		</tr>
+<?php endif;  ?>
 		<tr>
 			<td>
 				<div style="position:relative">

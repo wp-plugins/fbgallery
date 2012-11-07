@@ -23,7 +23,7 @@ function displayProgress (id, percentage)
 {	
     var percentageWidth = eachPercent * percentage;
     var actualWidth = initial + percentageWidth ;
-    document.write('<img id="'+id+'" src="../wp-content/plugins/fotobook/images/percentImage.png" alt="'+percentage+'%" class="percentImage" style="background-position: '+actualWidth+'px 0pt;"/> <span id="'+id+'Text">'+percentage+'%</span>');
+    document.write('<img id="'+id+'" src="../wp-content/plugins/fbgallery/images/percentImage.png" alt="'+percentage+'%" class="percentImage" style="background-position: '+actualWidth+'px 0pt;"/> <span id="'+id+'Text">'+percentage+'%</span>');
 }
 /************************************************************\
 *

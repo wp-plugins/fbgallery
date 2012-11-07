@@ -50,36 +50,55 @@ function fb_display_main($content) {
 
 	// get albums
 	$albums = fb_get_album(null, null, true);
+//fb_logdebug('fb_display_main : album : '.print_r($albums,true));
+	
 	if(!$albums) {
 		echo "<p>There are no albums.</p>";
 		return;
 	}
-	$curMonth = date('n');
-	$curYear = date('Y');
-	$firstTime = true;
-	if(isset($_GET['album_m']))
+	$datePagination = false;
+	$options = get_option('fbgallery_settings_section');
+	if($options['fb_date_pagination_on'] == 'datePageOn')
 	{
-		$curMonth = $_GET['album_m'];
-		$firstTime = false;
-	}
-	if(isset($_GET['album_y']))
-	{
-		$curYear = $_GET['album_y'];
-	}
-	$albums = fb_get_album_by_month($curMonth,$curYear);
-	if(!$albums) {
-		if (!$firstTime)
+		$datePagination = true;
+
+		$curMonth = date('n');
+		$curYear = date('Y');
+// fb_logdebug('fb_display_main : first curMonth : '.$curMonth);
+		$firstTime = true;
+		if(isset($_GET['album_y']))
 		{
-			echo "<p>There are no albums.</p>";
-			return;
+			$curYear = $_GET['album_y'];
 		}
-		else
+		if(isset($_GET['album_m']))
 		{
-			$latestDateStr =  fb_GetLastAlbumDate();
-			$latestDateTime = fb_StrToTime($latestDateStr); 
-			$curMonth = date('n',$latestDateTime);
-			$curYear = date('Y',$latestDateTime);
-			$albums = fb_get_album_by_month($curMonth,$curYear);
+			$curMonth = $_GET['album_m'];
+			if($curMonth == 0)
+			{
+				$curMonth = fbg_first_album_month($curYear);
+				if(curMonth === false)
+				{
+					$curMonth = 1;
+				}
+			}
+			$firstTime = false;
+		}
+		$albums = fb_get_album_by_month($curMonth,$curYear);
+		if(!$albums) {
+			if (!$firstTime)
+			{
+				echo "\n".'<div id="message" class="error" style="background: #ffebe8; padding-left: 6px;">';
+				echo "\n<p>There are no albums for ".GetMonthStr($curMonth)." $curYear please try a different month or year.</p>";
+				echo "\n</div>";
+			}
+			else
+			{
+				$latestDateStr =  fb_GetLastAlbumDate();
+				$latestDateTime = fb_StrToTime($latestDateStr); 
+				$curMonth = date('n',$latestDateTime);
+				$curYear = date('Y',$latestDateTime);
+				$albums = fb_get_album_by_month($curMonth,$curYear);
+			}
 		}
 	}
 	$album_count = sizeof($albums);
@@ -93,7 +112,10 @@ function fb_display_main($content) {
 	if($albums_per_page == 0) {
 		$albums_per_page = $album_count;
 	}
-	$page_count = ceil($album_count / $albums_per_page);
+	if($albums_per_page> 0)
+	{
+		$page_count = ceil($album_count / $albums_per_page);
+	}
 	$curr_page = $_GET['album_p'] <= $page_count && $_GET['album_p'] > 0 ? $_GET['album_p'] : 1;
 	$first_album = (($curr_page-1) * $albums_per_page) + 1;
 	$last_album = $first_album + $albums_per_page - 1;
@@ -120,8 +142,11 @@ function fb_display_main($content) {
 			}
 		}
 	}
-				$optionLine = '';
-				$selectedYear = $curYear;
+	$optionLine = '';
+	$yearOptionLine = '';
+	if($datePagination)
+	{
+			$selectedYear = $curYear;
 			for($i = 1; $i <= 12; $i++)
 			{
 				if($curMonth == $i)
@@ -141,21 +166,20 @@ function fb_display_main($content) {
 			{
 				if($curYear == $i)
 				{
-					$yearOptionLine .=  '<option value="'.$album_link.'?album_m=1&amp;album_y='.$i.'" selected="selected">'.$i.' ('.fb_count_albums_by_year($i).')</option>';
+					$yearOptionLine .=  '<option value="'.$album_link.'?album_m=0&amp;album_y='.$i.'" selected="selected">'.$i.' ('.fb_count_albums_by_year($i).')</option>';
 				}
 				else
 				{
-					$yearOptionLine .= '<option value="'.$album_link.'?album_m=1&amp;album_y='.$i.'">'.$i.' ('.fb_count_albums_by_year($i).')</option>';
+					$yearOptionLine .= '<option value="'.$album_link.'?album_m=0&amp;album_y='.$i.'">'.$i.' ('.fb_count_albums_by_year($i).')</option>';
 				}
 			}
-
+	}
 	// now get rid of all albums in the array that aren't displayed on this page
 	$albums = array_slice_preserve_keys($albums, $first_album-1, $albums_per_page);
 	foreach($albums as $key=>$album) {
 		$albums[$key]['link']	= get_permalink($albums[$key]['page_id']);
 		$albums[$key]['thumb'] = fb_get_photo($albums[$key]['cover_pid'], 'thumb');
 	}
-fb_logdebug('fb_display_main : style path : '.FB_STYLE_PATH);
 	include(FB_STYLE_PATH.'album-main.php');
 	?>
 <?php
