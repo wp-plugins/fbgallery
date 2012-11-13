@@ -447,10 +447,11 @@ function fb_display_styles() {
 		if ($options['fb_style'] == 'colorbox') {
 			wp_enqueue_style('fotobook-colorbox', FB_STYLE_URL.'colorbox.css');
 		}
+	}
 		wp_enqueue_style('fotobook-style', FB_STYLE_URL.'style.css');
-	}
-	if ((is_active_widget(false, false,'fbg_thumbnail_widget')) || (is_active_widget(false, false,'fbg_photos_widget'))) {
+
+//	if ((is_active_widget(false, false,'fbg_thumbnail_widget')) || (is_active_widget(false, false,'fbg_photos_widget'))) {
 		wp_enqueue_style('fbgallery-widget', FB_PLUGIN_URL . 'styles/sidebar-style.css');
-	}
+//	}
 }
 ?>

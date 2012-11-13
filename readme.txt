@@ -85,8 +85,12 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 5. **Album Contents** - Album Contents.
 
 == Change Log ==
+= 1.5.1 = 
+* Fixed issue Style sheet not loaded under certain circumstances. styles/img directory missing from install
+
 = 1.5 =
 * Fixed pagination isssue on album page, when selecting month with no albums.
+
 = 1.4 =
 * Removed debug lines from album-main.php
 
@@ -103,6 +107,8 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 * First release
 
 == Upgrade Notice ==
+= 1.5.1 = 
+Fixed issue where slider embeded in page was not working properly due to the style.css not being loaded. Loading GIF should now appear.
 = 1.5 = 
 Fixed pagination isssue on album page. Pagination by date is now optional, by default it is off. If you are using it you will have to turn it back on in the settings.
 = 1.4 =
