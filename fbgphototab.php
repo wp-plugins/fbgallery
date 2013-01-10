@@ -2,11 +2,12 @@
 //------------------------//
 //--PHOTOS-TAB-FUNCTIONS--//
 //------------------------//
-
 function fb_add_upload_tab($tabs) {
 	// 0 => tab display name, 1 => required cap, 2 => function that produces tab content, 3 => total number objects OR array(total, objects per page), 4 => add_query_args
-	$tab = array('fbgallery' => array('FBGallery', 'upload_files', 'fb_upload_tab', 0));
-	return array_merge($tabs, $tab);
+//	$tab = array('fbgallery' => array('FBGallery', 'upload_files', 'fb_upload_tab', 0));
+	$newtab = array('fbgallery' => __('FB Gallery','fbgallery'));
+//	$tab = array('tab_slug' => 'FBGallery');
+	return array_merge($tabs, $newtab);
 }
 
 function fb_upload_tab() {
@@ -140,7 +141,9 @@ if (!function_exists('media_admin_css')) {
 }
 
 if(get_bloginfo('version') >= 2.5) {
-	add_filter('media_upload_tabs', 'fb_add_media_tab');
+//	add_filter('media_upload_tabs', 'fb_add_media_tab');
+	add_filter('media_upload_tabs', 'fb_add_upload_tab');
+//	add_action( 'media_upload_tab_slug', 'media_upload_fbgallery' );
 	add_filter('media_upload_fbgallery', 'media_upload_fbgallery');
 	add_action('admin_head_media_upload_fbgallery_tab', 'media_admin_css');
 } else {

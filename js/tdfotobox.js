@@ -31,9 +31,8 @@
  										});
  									}, "jsonp")	
  								.success(function() {	
-// 									var locli = jQuery("'ul.slideshow li:nth-child("+currentIndex+")'");
  									jQuery('#slider-loadmask').remove();
-									jQuery("'ul.slideshow li:nth-child("+currentIndex+")'").addClass('show').animate({opacity: 1.0}, fadeDuration);
+									jQuery('ul.slideshow li:nth-child('+currentIndex+')').addClass('show').animate({opacity: 1.0}, fadeDuration);
 									var timer = setInterval('nextSlide()',slideDuration);
 					  		})
 								.error(function( jqXHR, textStatus, errorThrown) {
@@ -44,7 +43,7 @@
 									console.log("get XMLHttpRequest= "+XMLHttpRequest.responseText);
 								}).complete(function(){
 									jQuery('#fbg-slide').fadeIn('slow'); 
- 									jQuery('#fbg-slide').append("<div class='fbg-slide-title'><h2>"+jQuery("'ul.slideshow li:nth-child("+currentIndex+")'").find("img:first").attr("title")+"</h2></div>");
+ 									jQuery('#fbg-slide').append("<div class='fbg-slide-title'><h2>"+jQuery('ul.slideshow li:nth-child('+currentIndex+')').find("img:first").attr("title")+"</h2></div>");
 							  });
 	}
 	function FBGetWidgetPhotoSlide(theWidth, theHeight)
@@ -78,8 +77,8 @@
  									}, "jsonp")	
  								.success(function() {	
  									jQuery('#loadmask').remove();
- 									jQuery('#fbg-widget-slide').append("<div class='fbg-slideshow-title'><h2>"+jQuery("'ul.widget-slideshow li:nth-child("+currentIndex+")'").find("img:first").attr("title")+"</h2></div>");
-									jQuery("'ul.widget-slideshow li:nth-child("+currentIndex+")'").addClass('show').animate({opacity: 1.0}, fadeDuration);
+ 									jQuery('#fbg-widget-slide').append("<div class='fbg-slideshow-title'><h2>"+jQuery('ul.widget-slideshow li:nth-child('+currentIndex+')').find("img:first").attr("title")+"</h2></div>");
+									jQuery('ul.widget-slideshow li:nth-child('+currentIndex+')').addClass('show').animate({opacity: 1.0}, fadeDuration);
 									var timer = setInterval('nextWidgetSlide()',slideDuration);
 					  		})
 								.error(function( jqXHR, textStatus, errorThrown) {
@@ -199,9 +198,9 @@ this.imagePreview = function(){
 			{
 				nextIndex = 1;
 			}
-			jQuery(".fbg-slide-title h2").html(jQuery("'ul.slideshow li:nth-child("+nextIndex+")'").find("img:first").attr("title"));
- 			jQuery("'ul.slideshow li:nth-child("+nextIndex+")'").addClass('show').animate({opacity: 1.0}, fadeDuration);
-			jQuery("'ul.slideshow li:nth-child("+currentIndex+")'").animate({opacity: 0.0}, fadeDuration).removeClass('show');
+			jQuery(".fbg-slide-title h2").html(jQuery('ul.slideshow li:nth-child('+nextIndex+')').find("img:first").attr("title"));
+ 			jQuery('ul.slideshow li:nth-child('+nextIndex+')').addClass('show').animate({opacity: 1.0}, fadeDuration);
+			jQuery('ul.slideshow li:nth-child('+currentIndex+')').animate({opacity: 0.0}, fadeDuration).removeClass('show');
 			currentIndex = nextIndex;
 	}
 	function nextWidgetSlide(){
@@ -210,9 +209,9 @@ this.imagePreview = function(){
 			{
 				nextIndex = 1;
 			}
-			jQuery(".fbg-slideshow-title h2").html(jQuery("'ul.widget-slideshow li:nth-child("+nextIndex+")'").find("img:first").attr("title"));
-	 		jQuery("'ul.widget-slideshow li:nth-child("+nextIndex+")'").addClass('show').animate({opacity: 1.0}, fadeDuration);
-			jQuery("'ul.widget-slideshow li:nth-child("+currentIndex+")'").animate({opacity: 0.0}, fadeDuration).removeClass('show');
+			jQuery(".fbg-slideshow-title h2").html(jQuery('ul.widget-slideshow li:nth-child('+nextIndex+')').find("img:first").attr("title"));
+	 		jQuery('ul.widget-slideshow li:nth-child('+nextIndex+')').addClass('show').animate({opacity: 1.0}, fadeDuration);
+			jQuery('ul.widget-slideshow li:nth-child('+currentIndex+')').animate({opacity: 0.0}, fadeDuration).removeClass('show');
 			currentIndex = nextIndex;
 	}
 function centerSquareThumbs(container, size) {
@@ -243,5 +242,5 @@ jQuery(document).ready(function(){
 });
 window.onload = function() {
 	var locSize = jQuery('.fbg-thumbnail').height();
-	centerSquareThumbs('fbg-photos-thumb-widget',locSize);
+//	centerSquareThumbs('fbg-photos-thumb-widget',locSize);
 }

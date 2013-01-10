@@ -5,7 +5,7 @@ Plugin URI: http://www.amkd.com.au/wordpress/fbgallery/70
 Description: Imports your Facebook albums directly into WordPress. Updating the original Fotobook plugin by Aaron Harp this version now uses OpenGraph. Albums are now stored as posts rather than pages so that photos can be searched using wordpress search.
 Author: Caevan Sachinwalla
 Author URI: http://www.amkd.com.au/
-Version: 1.5.1
+Version: 1.5.2
 */
 
 /*
@@ -724,6 +724,7 @@ function update_albums($recent = false)
 		// If Caching is enabled now get the latest 24 images and store them locally to speed up the slideshow.
 		if($this->options['fb_use_cache'] == 'useCache')
 		{
+fb_logdebug('B4: fb_latest_photos');
 			fb_latest_photos($this->options['fb_num_to_cache']);
 		}
 	}
@@ -1197,6 +1198,13 @@ function fb_latest_photos($count = 24) {
 	
 	if($photos) {
 	
+		$uploadDir = wp_upload_dir();
+		$fbDir = $uploadDir['basedir'].'/fbgallery';
+		$fbURL = $uploadDir['baseurl'].'/fbgallery';
+		if(!is_dir($fbDir))
+		{
+			mkdir($fbDir,0755);
+		} 
 		for($i = 0; $i < count($photos); $i++)
 		{
 			$locAlbum = fb_get_album($photos[$i]['aid']);
@@ -1204,13 +1212,6 @@ function fb_latest_photos($count = 24) {
 			{
 				$photos[$i]['caption'] = htmlspecialchars($locAlbum['name']);
 			}
-			$uploadDir = wp_upload_dir();
-		$fbDir = $uploadDir['basedir'].'/fbgallery';
-		$fbURL = $uploadDir['baseurl'].'/fbgallery';
-			if(!is_dir($fbDir))
-			{
-				mkdir($fbDir,0755);
-			} 
 			$newSrc = $fbDir.'/'.basename($photos[$i]['src']);  
 			$newURL = $fbURL.'/'.basename($photos[$i]['src']);  
 			copy($photos[$i]['src'],$newSrc);
@@ -1223,6 +1224,7 @@ function fb_latest_photos($count = 24) {
 			$photos[$i]['srcpath_small'] = $newSrc;
 
 		}
+		
 		file_put_contents($fbDir.'/fb_recent.json', json_encode($photos));
 	}
 }

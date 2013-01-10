@@ -3,8 +3,8 @@ Contributors: caevan
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=YSM3KMT3B5AQE 
 Tags: facebook, photos, images, gallery, fbgallery, import, widget, media,graph
 Requires at least: 3.0
-Tested up to: 3.4.2
-Stable tag: 3.4.2
+Tested up to: 3.5
+Stable tag: 3.5
 License: GPLv2 or later
 
 FBGallery allows you to import all of your Facebook photo albums for use in your WordPress installation, while keeping the image storage on Facebook.
@@ -25,6 +25,7 @@ FBGallery allows you to import all of your Facebook photo albums for use in your
 * Widgets use Ajax
 * Insert individual photos into posts/pages
 * Easy-to-use Ajax album management panel
+* Images can be inserted into posts using the wordpress media manager
 
 
 
@@ -72,7 +73,7 @@ Note: Height and width should be no bigger than the images you will be displayin
 
 <?php fbg_photos_slider(200, 300); ?>
 
-= I would like to view the images with a Lightbox plugin. =
+= If you would like to view the images with a Lightbox plugin. =
 You will need to install [jQuery Lightbox](http://wordpress.org/extend/plugins/jquery-lightbox-balupton-edition/)
 FBGallery has been coded to have the appropriate tags to work with jQuery Lightbox. 
 
@@ -85,6 +86,9 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 5. **Album Contents** - Album Contents.
 
 == Change Log ==
+= 1.5.2 = 
+* Fixed bug in photo slider javascript,  compatibile with wordpress 3.5, integrates with wordpress media manager
+
 = 1.5.1 = 
 * Fixed issue Style sheet not loaded under certain circumstances. styles/img directory missing from install
 
@@ -107,6 +111,8 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 * First release
 
 == Upgrade Notice ==
+= 1.5.2 =
+Compatible with wordpress 3.5
 = 1.5.1 = 
 Fixed issue where slider embeded in page was not working properly due to the style.css not being loaded. Loading GIF should now appear.
 = 1.5 = 
