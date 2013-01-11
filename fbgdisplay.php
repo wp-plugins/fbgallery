@@ -402,12 +402,6 @@ function fb_info_box() {
 			<li><a href="http://www.fatcow.com/join/index.bml?AffID=642780">Host your Web site with FatCow!</a></li>
 			<li><a href="http://www.amkd.com.au/">Need someone to build your web site?</a></li>
 		</ul>
-		<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
-			<input type="hidden" name="cmd" value="_s-xclick">
-			<input type="hidden" name="hosted_button_id" value="N2B6H6ZJZ9C9J">
-			<input type="image" src="https://www.paypalobjects.com/en_AU/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal — The safer, easier way to pay online.">
-			<img alt="" border="0" src="https://www.paypalobjects.com/en_AU/i/scr/pixel.gif" width="1" height="1">
-		</form>
 
 
 	</div>

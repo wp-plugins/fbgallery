@@ -86,6 +86,9 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 5. **Album Contents** - Album Contents.
 
 == Change Log ==
+= 1.5.3 = 
+* Removed donation links
+
 = 1.5.2 = 
 * Fixed bug in photo slider javascript,  compatibile with wordpress 3.5, integrates with wordpress media manager
 
@@ -111,6 +114,8 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 * First release
 
 == Upgrade Notice ==
+= 1.5.3 = 
+Removed all donation links
 = 1.5.2 =
 Compatible with wordpress 3.5
 = 1.5.1 = 
@@ -128,6 +133,5 @@ Added timeout feature and cached images.
 = 1.0 =
 First release
 
-== Donate ==
-If you are satisfied with your hosting and want to help out, you can send some cash over [Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=YSM3KMT3B5AQE).
+
 
