@@ -86,6 +86,8 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 5. **Album Contents** - Album Contents.
 
 == Change Log ==
+= 1.5.4 = 
+* Fixed syntax error
 = 1.5.3 = 
 * Removed donation links
 
