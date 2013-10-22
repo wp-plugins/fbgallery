@@ -3,8 +3,8 @@ Contributors: caevan
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=YSM3KMT3B5AQE 
 Tags: facebook, photos, images, gallery, fbgallery, import, widget, media,graph
 Requires at least: 3.0
-Tested up to: 3.5
-Stable tag: 3.5
+Tested up to: 3.61
+Stable tag: 3.61
 License: GPLv2 or later
 
 FBGallery allows you to import all of your Facebook photo albums for use in your WordPress installation, while keeping the image storage on Facebook.
@@ -86,6 +86,9 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 5. **Album Contents** - Album Contents.
 
 == Change Log ==
+= 1.5.5 = 
+* Fixed issues retrieving albums from Facebook. Fixed minor bugs
+== Change Log ==
 = 1.5.4 = 
 * Fixed syntax error
 = 1.5.3 = 
@@ -116,6 +119,8 @@ FBGallery has been coded to have the appropriate tags to work with jQuery Lightb
 * First release
 
 == Upgrade Notice ==
+= 1.5.5 =
+Fixed pagination issues on photo page display, limited display to last 50 albums on management display.
 = 1.5.3 = 
 Removed all donation links
 = 1.5.2 =

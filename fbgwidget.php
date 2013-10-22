@@ -189,6 +189,11 @@ function fb_photos_slide_ajax()
 			{
 				continue;
 			}
+			fb_logdebug('fb_photos_slide_ajax : height : '.$height.' t: photoheigh : '.$photoHeight);
+			if($height > $width)
+			{
+				continue;
+			}
 			$imageCount++;
 			
 			if($imageCount > $maxCount)

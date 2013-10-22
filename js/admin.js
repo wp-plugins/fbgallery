@@ -122,7 +122,7 @@ var fbgallery = {
 		jQuery('#fb-manage-list').addClass('disabled');
 		seconds = 0;
 		fbgallery.tickInterval = setInterval(fbgallery.setTick, 1000);
-		fbgallery.interval = setInterval(fbgallery.updateProgressBar, 2000);
+		fbgallery.interval = setInterval(fbgallery.updateProgressBar, 3000);
 		jQuery.post('admin-ajax.php', "action=fbgallery&update=true", function(response) {
 			clearInterval(fbgallery.interval);
 			fbgallery.setProgress(100);
@@ -150,14 +150,14 @@ var fbgallery = {
 	},
 	updateProgressBar: function() {
 		jQuery.post('admin-ajax.php', "action=fbgallery&progress=true", function(response) {
-			if(response == '-1')
+			if((response == '-1') || (response == -1))
 			{
 				clearInterval(fbgallery.interval);
 				fbgallery.setProgress(100);
 				fbgallery.albumList("Update Completed");
 				jQuery('#fb-progress').fadeOut();
 			}
-			else if(response == '-2')
+			else if((response == '-2') || (response == -2))
 			{
 				clearInterval(fbgallery.interval);
 				fbgallery.setProgress(100);

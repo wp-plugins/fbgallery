@@ -34,7 +34,7 @@ if($fb_message): ?>
 			<input type="button" class="button-secondary" name="order" value="Order By Date" />
 			<input type="button" class="button-secondary" name="remove" value="Remove All" /> &nbsp;&nbsp;
 			<span id="fb-progress" style="display: none">
-				<img id="fb-progress-indicator" src="../wp-content/plugins/fotobook/images/percentImage.png" alt="0%" class="percentImage" style="background-position: -500px 0pt;"/>
+				<img id="fb-progress-indicator" src="../wp-content/plugins/fbgallery/images/percentImage.png" alt="0%" class="percentImage" style="background-position: -500px 0pt;"/>
 				<span id="fb-progress-indicatorText">0%</span>
 			</span>
 		</div>
@@ -42,7 +42,7 @@ if($fb_message): ?>
 
 		 echo $mgFacebook->CheckForNewAlbums() ?>		
 		<div id="fb-manage">
-			<?php fb_display_manage_list() ?>
+			<?php fb_display_manage_list('Only The Last 50 Albums are Shown Below') ?>
 		</div>
 		<!-- ?php endif; ? -->
 		

@@ -7,7 +7,6 @@ FB Gallery Settings Page
 // get facebook authorization token
 include_once('fbgallery.php');
 //include_once('lib/facebook.php');
-$facebook = new FacebookAPI;
 
 // authorize session
 //if(isset($_POST['activate-facebook'])) {
@@ -17,7 +16,8 @@ $facebook = new FacebookAPI;
 // remove the user
 if(isset($_GET['deactivate-facebook']) ) {
 	
-	$facebook->remove_user();
+$facebookAPI = new FacebookAPI;
+	$facebookAPI->remove_user();
 } 
 $settingsOptions = get_option('fbgallery_settings_section');
 $options = get_option('fbgallery_plugin_options');
@@ -63,6 +63,9 @@ $styles = fb_get_styles();
 function setting_textfn($args = array()) {
 	extract( $args );
 	$options = get_option('fbgallery_settings_section');
+//	fb_logdebug('setting_textfn : args : '.print_r($args,true));
+//	fb_logdebug('setting_textfn : options : '.print_r($options,true));
+//	fb_logdebug('setting_textfn : fbgid : '.$fbgid);
 	if ($fbgid == "fb_albums_category")
 	{
 				echo "<select class='select' name='fbgallery_settings_section[".$fbgid."]'>\n";
@@ -77,6 +80,28 @@ function setting_textfn($args = array()) {
 	{
 				echo "<select class='select' name='fbgallery_settings_section[".$fbgid."]'>\n";
 				if(!fb_albums_page_is_set())
+				{
+						echo "\n".'<option value="0" selected>Please select...</option>'."\n";
+				}
+				fb_parent_dropdown($options[$fbgid]);
+				echo "\n</select>\n";
+	}
+	else if ($fbgid == "fb_albums_content_page")
+	{
+//	fb_logdebug('setting_textfn : Here');
+				echo "<select class='select' name='fbgallery_settings_section[".$fbgid."]'>\n";
+				if(!fb_album_content_page_is_set())
+				{
+						echo "\n".'<option value="0" selected>Please select...</option>'."\n";
+				}
+				fb_parent_dropdown($options[$fbgid]);
+				echo "\n</select>\n";
+	}
+else if ($fbgid == "fb_photo_display")
+	{
+//	fb_logdebug('setting_textfn : Here');
+				echo "<select class='select' name='fbgallery_settings_section[".$fbgid."]'>\n";
+				if(!fb_photo_content_page_is_set())
 				{
 						echo "\n".'<option value="0" selected>Please select...</option>'."\n";
 				}
@@ -103,6 +128,17 @@ function setting_textfn($args = array()) {
 			else
 			{
   			echo '<input id="plugin_text_string" name="fbgallery_settings_section['.$fbgid.']" type="checkbox" value="useCache" />';
+			}
+	}
+	else if($fbgid == "fb_use_album_content_page")
+	{
+			if((isset($options[$fbgid])) && ($options[$fbgid] == 'use_album_content_page'))
+			{
+  			echo '<input id="plugin_text_string" name="fbgallery_settings_section['.$fbgid.']" type="checkbox" value="use_album_content_page" checked="checked" />';
+			}
+			else
+			{
+  			echo '<input id="plugin_text_string" name="fbgallery_settings_section['.$fbgid.']" type="checkbox" value="use_album_content_page" />';
 			}
 	}
 	else if($fbgid == "fb_date_pagination_on")
@@ -212,6 +248,11 @@ function  section_text_fn($desc) {
 	add_settings_field('fbgplugin_use_cache', 'Use Cached Images', 'setting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_use_cache', 'fgbOptionHelp' =>' Use cached copies of images for the widget instead of retrieving them each time from Facebook, which can be a bit slow' ));
 	add_settings_field('fbgplugin_num_to_cache', 'Number of Images to Cache', 'setting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_num_to_cache', 'fgbOptionHelp' =>' Number of images that will be cached (Max 50)' ));
 	add_settings_field('fbgplugin_debug', 'Turn on Debug', 'setting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_debug_on', 'fgbOptionHelp' =>' Turning debug on will write debug information to a debug directory under the plugin directory' ));
+	add_settings_field('fbgplugin_use_album_content_page', 'Use Album Content Page', 'setting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_use_album_content_page', 'fgbOptionHelp' =>'By default fbgallery will display the album content as a post, selecting this option will display the contents dynamically' ));
+	add_settings_field('fbgplugin_photos', 'Photos Page', 'setting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_photo_display', 'fgbOptionHelp' =>' Select the page you have configued to display album content. It must contain the shortcode fb_album_content' ));
+//fb_logdebug("regusterFBGSettings: B4 Album content");
+//	add_settings_field('fbgplugin_album_content_page', 'Album Content Page', 'seting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_albums_content_page', 'fgbOptionHelp' =>'Select the page you have configued to display album content. It must contain the shortcode fb_album_content' ));
+//	add_settings_field('fbgplugin_photos_page', 'Album Content Page', 'seting_textfn', 'fbgalleryplugin_option', 'fbgallery_option_section', array( 'fbgid' => 'fb_photos_page', 'fgbOptionHelp' =>'Select the page you have configued to display album content. It must contain the shortcode fb_album_content' ));
 
 }
 
@@ -292,16 +333,24 @@ function fbGalleryAdminHtmlPage() {
 	            if ( isset($_GET['code']) && $_GET['code']!='')
 	            { 
 								$at = $_GET['code'];
-                $response  = wp_remote_get('https://graph.facebook.com/oauth/access_token?client_id='.$fb_app_id.'&redirect_uri='.$baseUrl.'&client_secret='.$fb_app_secret.'&code='.$at); 
-                if ((is_object($response) && isset($response->errors))) { prr($response); die();}
-                parse_str($response['body'], $params); $at = $params['access_token'];
+//fb_logdebug('SetupFBGSettings :  the $at : '.$at);
+//                $response  = wp_remote_get('https://graph.facebook.com/oauth/access_token?client_id='.$fb_app_id.'&redirect_uri='.$baseUrl.'&client_secret='.$fb_app_secret.'&code='.$at); 
+//fb_logdebug('SetupFBGSettings : $response : '.print_r($response,true));
+//                if ((is_object($response) && isset($response->errors))) { prr($response); die();}
+//                parse_str($response['body'], $params); $at = $params['access_token'];
+$fbuid = $facebook->getUser();
+$at = $facebook->getAccessToken();
               $response  = wp_remote_get('https://graph.facebook.com/oauth/access_token?client_secret='.$fb_app_secret.'&client_id='.$fb_app_id.'&grant_type=fb_exchange_token&fb_exchange_token='.$at); 
-                if ((is_object($response) && isset($response->errors))) { prr($response); die();}
+// fb_logdebug('SetupFBGSettings : 2nd $response : '.print_r($response,true));
+               if ((is_object($response) && isset($response->errors))) { prr($response); die();}
                      parse_str($response['body'], $params); $at = $params['access_token']; $fbAppAuthToken = $at; 
+//fb_logdebug('SetupFBGSettings : $fbAppAuthToken : '.$fbAppAuthToken);
 
                     $facebook->setAccessToken($fbAppAuthToken); 
+//fb_logdebug('SetupFBGSettings : After set access token');
 										$user = $facebook->getUser();
                     if ($user) {
+//fb_logdebug('SetupFBGSettings : user : '.$user);
  								    $fbPgID = $fb_fan_page_url; 
  								    if (substr($fbPgID, -1)=='/') $fbPgID = substr($fbPgID, 0, -1);  $fbPgID = substr(strrchr($fbPgID, "/"), 1);
              
@@ -309,14 +358,29 @@ function fbGalleryAdminHtmlPage() {
                             if( !empty($page_info['access_token']) ) { 
                             	$fbAppPageAuthToken = $page_info['access_token']; 
                             }
-                        } catch (FBG__FacebookApiException $e) { $errMsg = $e->getMessage();
+                        } catch (FacebookApiException $e) { $errMsg = $e->getMessage();
+//fb_logdebug('SetupFBGSettings : exception : '.$errMsg);
+                        	
                           if ( stripos($errMsg, 'Unknown fields: access_token')!==false) $fbAppPageAuthToken = $fbAppAuthToken; else { echo 'Error:',  $errMsg, "\n"; die(); }
                         }
                     }else echo "Please login to Facebook";                
 							$accessToken = $facebook->getAccessToken();
+//fb_logdebug('SetupFBGSettings : $accessToken : '.$accessToken);
 							if($accessToken)
-								{
-									$fbAppAuthToken	= $accessToken;
+							{
+									$locAccessToken = $accessToken;
+//fb_logdebug('SetupFBGSettings : $locAccessToken : '.$locAccessToken);
+									$locPos = strpos($locAccessToken,'authtoken');
+									if($locPos !== false)
+									{
+										$subAccessToken = substr($locAccessToken,$locPos,strlen('authtoken'));
+										$fbAppAuthToken	= $subAccessToken;
+									}
+									else
+									{
+										$fbAppAuthToken	= $accessToken;
+									}
+//fb_logdebug('SetupFBGSettings : update $fbAppAuthToken : '.$fbAppAuthToken);
 									update_option('fbAppAuthToken',$fbAppAuthToken);
 									$fbAppAuthUser = $user;
 									update_option('fbAppAuthUser',$fbAppAuthUser);

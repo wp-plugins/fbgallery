@@ -21,7 +21,7 @@
 	   	  					jQuery.each(data,function(i,photos){
 											jQuery('#slider').append(
     											jQuery('<li>').append(
-        											jQuery('<a>').attr('href',photos.link).append(
+        											jQuery('<a>').attr('href',"photos").append(
             										jQuery('<img>').attr({
         																	src : photos.src,
   																				alt: photos.src,
@@ -239,8 +239,26 @@ jQuery(document).ready(function(){
 		FBGetPhotoThumb();
 	}
 	imagePreview();
+	if(jQuery('#fotobook-main').length)
+	{
+		centerSquareThumbTables('thumbnail');
+	}
 });
 window.onload = function() {
 	var locSize = jQuery('.fbg-thumbnail').height();
 //	centerSquareThumbs('fbg-photos-thumb-widget',locSize);
+}
+function centerSquareThumbTables(container) {
+  var widgets = document.getElementsByClass(container);
+  for(var j=0; j < widgets.length; j++)
+  {
+  	size = widgets[j].width;
+  	var tables = widgets[j].getElementsByclassName('thumb-table');
+  	for(var i=0; i < tables.length; i++) {
+    	var left = ((tables[i].width - size) / 2) * -1;
+  // 	 var top = ((images[i].height - size) / 2) * -1;
+   	 tables[i].style.left = left+'px';
+//   	 images[i].style.marginTop  = top+'px';
+  	}
+  }
 }

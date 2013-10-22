@@ -5,11 +5,11 @@ require('../../../wp-blog-header.php');
 
 // handle cron request
 if(isset($_GET['update']) && isset($_GET['secret']) && $_GET['secret'] == get_option('fb_secret')) {
-	echo 'Updating Fotobook (be patient)...';
+	echo 'Updating FB Gallery (be patient)...';
 	ob_flush(); flush();
 	$facebook = new FacebookAPI;
 	if($facebook->link_active())
-		$facebook->update_albums();
+		$facebook->update_albums(true);
 	echo 'Done';
 } else {
 	echo 'Invalid URL';

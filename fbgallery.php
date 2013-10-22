@@ -5,11 +5,11 @@ Plugin URI: http://www.amkd.com.au/wordpress/fbgallery/70
 Description: Imports your Facebook albums directly into WordPress. Updating the original Fotobook plugin by Aaron Harp this version now uses OpenGraph. Albums are now stored as posts rather than pages so that photos can be searched using wordpress search.
 Author: Caevan Sachinwalla
 Author URI: http://www.amkd.com.au/
-Version: 1.5.4
+Version: 1.5.5
 */
 
 /*
-Copyright 2012 Caevan Sachinwalla
+Copyright 2013 Caevan Sachinwalla
 Acknowledgement to Asron Harp for the orginal code for this plugin
 
 This program is free software: you can redistribute it and/or modify
@@ -39,11 +39,16 @@ define('FB_STYLE_PATH', FB_PLUGIN_PATH.'styles/');
 define('FB_MANAGE_URL', (get_bloginfo('version') >= 1.0 ? 'media-new.php' : 'edit.php') .'?page=fbgallery/fbg-settings.php?tab=fbg_manage');
 define('FB_OPTIONS_URL', 'options-general.php?page=fbgallery/fbg-settings.php');
 define('FB_WEBSITE', 'http://www.amkd.com.au/wordpress/fbgallery/70');
-define('FB_VERSION', 1.54);
+define('FB_VERSION', 1.55);
 define('FB_TITLE','FB Gallery');
 
 // facebook configuration variables
 define('FB_DEBUG_LEVEL',1);
+	if(!class_exists('FBG_Facebook'))
+		{
+		include_once('lib/facebook.php');
+		include_once('lib/fbconfig.php');
+	}
 
 include_once('fbgphototab.php');
 include_once('fbgdisplay.php');
@@ -56,6 +61,12 @@ if(fb_needs_upgrade()) {
 }
 
 $fb_message = null;
+add_filter( 'query_vars', 'addalbum_query_vars', 10, 1 );
+function addalbum_query_vars($vars)
+{   
+   $vars[] = 'fb_album';     
+    return $vars;
+}
 
 function fbg_admin_scripts() {
 	wp_enqueue_style('fotobook-css', FB_PLUGIN_URL.'styles/admin-styles.css');
@@ -95,7 +106,7 @@ function DoHTMLEncode($theCaption)
 				}
 				global $wp_query;
 		   	$TD_DEBUG_DIR = FB_PLUGIN_PATH.'debug/fbgdebug'.date('dmY').'.log'; 
-		
+//echo "\n<!-- ".$TD_DEBUG_DIR." -->\n";		
 	    	$date = date('d.m.Y H:i:s'); 
     		$log = $date." : [TD] ".$debugStr."\n"; 
     		error_log($log, 3, $TD_DEBUG_DIR); 
@@ -122,11 +133,11 @@ class FacebookAPI {
 
 function FacebookAPI() 
 {
-	if(!class_exists('FB_Facebook'))
-		{
-		include_once('lib/facebook.php');
-		include_once('lib/fbconfig.php');
-	}
+//	if(!class_exists('FBG_Facebook'))
+//		{
+//		include_once('lib/facebook.php');
+//		include_once('lib/fbconfig.php');
+//	}
 		
 	$facebook	= SetupFBConnection();
 
@@ -232,10 +243,21 @@ function TDGetAlbums($nextLink = false)
 	{ 
 			$options = get_option('fbgallery_plugin_options');
 
-		$fbPgID = $options['fb_fan_page_url'];
+		$fbPgID = trim($options['fb_fan_page_url']);
+//		fb_logdebug('FB Gallery TDGetAlbums fan_page_url : '.$options['fb_fan_page_url']);
+//		fb_logdebug('FB Gallery TDGetAlbums $fbPgID : '.$fbPgID);
     if (substr($fbPgID, -1)=='/') $fbPgID = substr($fbPgID, 0, -1);  $fbPgID = substr(strrchr($fbPgID, "/"), 1);
-
-		$albums = $this->facebook->api("/".$fbPgID."/albums");
+//		fb_logdebug('FB Gallery TDGetAlbums 2 $fbPgID : '.$fbPgID);
+//		fb_logdebug('FB Gallery TDGetAlbums 2 api : '."/".urlencode($fbPgID)."/albums");
+		try
+		{
+			$albums = $this->facebook->api("/".urlencode($fbPgID)."/albums");
+		}
+		catch(Exception $e)
+		{
+			fb_logdebug('FB Gallery TDGetAlbums : Exception: '.$e->getMessage());
+		}
+//		fb_logdebug('FB Gallery TDGetAlbums albums : '.print_r($albums,true));
 		return $albums;
 	}
 	else
@@ -247,7 +269,15 @@ function TDGetAlbums($nextLink = false)
 			$untilStr = substr($nextLink,$facePos+strlen($faceNeedle),strlen($nextLink)-($facePos+strlen($faceNeedle)));
 			$nextLink = $untilStr;
 		}
-		$albums = $this->facebook->api($nextLink);
+		try
+		{
+//			$albums = $this->facebook->api(urlencode($nextLink));
+			$albums = $this->facebook->api($nextLink);
+		}
+		catch(Exception $e)
+		{
+			fb_logdebug('FB Gallery TDGetAlbums 2: Exception: '.$e->getMessage());
+		}
 		if(!is_array($albums))
 		{
 			return false;
@@ -268,8 +298,8 @@ function FillAlbumData($theAlbum)
 				'cover_pid' => $theAlbum['cover_photo'],
 				'owner' => $theAlbum['from']['id'],
 				'name' => $theAlbum['name'],
-				'created' => !empty($theAlbum['created_time']) ?  date('Y-m-d H:i:s', ParseDateTime($theAlbum['created_time'],true)) : '',
-				'modified' => !empty($theAlbum['updated_time']) ? date('Y-m-d H:i:s', ParseDateTime($theAlbum['updated_time'],true)) : '',
+				'created' => !empty($theAlbum['created_time']) ?  date('Y-m-d H:i:s', ParseDateTime($theAlbum['created_time'],true)) : date('Y-m-d H:i:s'),
+				'modified' => !empty($theAlbum['updated_time']) ? date('Y-m-d H:i:s', ParseDateTime($theAlbum['updated_time'],true)) : date('Y-m-d H:i:s'),
 				'description' => $theAlbum['description'],
 				'location' => $theAlbum['location'],
 				'link' => $theAlbum['link'],
@@ -318,12 +348,47 @@ function SavePhotoData($photo, $album, $ordinal,$photoCount)
 function CountAlbums($uid)
 {
 	
+//		fb_logdebug('FB Gallery CountAlbums : start ');
 		$options = get_option('fbgallery_plugin_options');
-    $fbPgID = $options['fb_fan_page_url'];
-    if (substr($fbPgID, -1)=='/') $fbPgID = substr($fbPgID, 0, -1);  $fbPgID = substr(strrchr($fbPgID, "/"), 1);
-		$profile = $this->facebook->api("/".$fbPgID);
-		$ownerID = $profile['id'];
-		$albumIDs = $this->facebook->api('/fql?q=SELECT+aid+FROM+album+WHERE+owner='.$ownerID);
+//		fb_logdebug('FB Gallery CountAlbums : options : '.print_r($options,true));
+    $fbPgID = trim($options['fb_fan_page_url']);
+//		fb_logdebug('FB Gallery CountAlbums : fbPgID : '.$fbPgID);
+    if (substr($fbPgID, -1)=='/') $fbPgID = substr($fbPgID, 0, -1);  
+    $fbPgID = substr(strrchr($fbPgID, "/"), 1);
+//		fb_logdebug('FB Gallery CountAlbums : next fbPgID : '.$fbPgID);
+		try
+		{
+			$profile = $this->facebook->api("/".urlencode($fbPgID));
+		}
+		catch(Exception $e)
+		{
+			fb_logdebug('FB Gallery CountAlbums : Exception: '.$e->getMessage());
+		}
+//		fb_logdebug('FB Gallery CountAlbums : After facebook api');
+		if(is_array($profile))
+		{ 
+//			fb_logdebug('FB Gallery CountAlbums : next profile : '.print_r($profile,true));
+ 			$ownerID = $profile['id'];
+ 		}
+ 		else
+ 		{
+ 			$ownerID = $this->facebook->getUser();
+//			fb_logdebug('FB Gallery CountAlbums : next getUser  : '.$ownerID);
+ 		}
+//		fb_logdebug('FB Gallery CountAlbums : albumIDs : /fql?q=SELECT+aid+FROM+album+WHERE+owner='.$ownerID);
+		try
+		{
+			$albumIDs = $this->facebook->api('/fql?q=SELECT+aid+FROM+album+WHERE+owner='.$ownerID);
+		}
+		catch(Exception $e)
+		{
+			fb_logdebug('FB Gallery CountAlbums Album ids : Exception: '.$e->getMessage());
+		}
+//		fb_logdebug('FB Gallery CountAlbums : fql returned ');
+//		fb_logdebug('FB Gallery CountAlbums : albumIDs : '.print_r($albumIDs,true));
+//		$albumIDs = $this->facebook->api('/fql?q=SELECT aid FROM album WHERE owner='.$ownerID);
+//		fb_logdebug('FB Gallery CountAlbums : fql returned ');
+//		fb_logdebug('FB Gallery CountAlbums : albumIDs : '.print_r($albumIDs,true));
 		return count($albumIDs['data']);
 }
 
@@ -336,7 +401,7 @@ function CreatePost($theAlbum, $thePhotoPostBodyStr)
 		'post_title' => $theAlbum['name'],
 		'post_content' => $thePhotoPostBodyStr,
 		'post_status' => 'publish',
-		'post_date' => date('Y-m-d H:i:s'),
+		'post_date' => !empty($theAlbum['created_time']) ?  date('Y-m-d H:i:s', ParseDateTime($theAlbum['created_time'],true)) : date('Y-m-d H:i:s'),
 		'post_author' => $user_ID,
 		'post_type' => 'post',
 		'post_category' => array($fb_albums_category )
@@ -349,7 +414,9 @@ function CreatePost($theAlbum, $thePhotoPostBodyStr)
 function CheckForNewAlbums() {
 		global $wpdb;
 		
+//			fb_logdebug('CheckForNewAlbums: start');
 		$totalAlbums = $this->CountAlbums(0);		
+//			fb_logdebug('CheckForNewAlbums: totalAlbums : '.$totalAlbums);
 		$albums = fb_get_album();
 		$totalStoredAlbums = count($albums);
 		$albumsToGet = $this->options['fb_max_albums'];
@@ -359,11 +426,19 @@ function CheckForNewAlbums() {
 			$latestDateStr =  fb_GetLastAlbumUpDate();
 			$latestDateTime = fb_StrToTime($latestDateStr); 
 			$options = get_option('fbgallery_plugin_options');
-    	$fbPgID = $options['fb_fan_page_url'];
+    	$fbPgID = trim($options['fb_fan_page_url']);
     	if (substr($fbPgID, -1)=='/') $fbPgID = substr($fbPgID, 0, -1);  $fbPgID = substr(strrchr($fbPgID, "/"), 1);
-			$profile = $this->facebook->api("/".$fbPgID);
+			try
+			{
+				$profile = $this->facebook->api("/".urlencode($fbPgID));
+			}
+			catch(Exception $e)
+			{
+				fb_logdebug('FB Gallery CheckForNewAlbums : Exception: '.$e->getMessage());
+			}
+
 			$ownerID = $profile['id'];
-//			$fqlStr = '/fql?q=SELECT modified FROM album WHERE owner='.$ownerID.' AND modified >'.$latestDateTime;
+			$fqlStr = '/fql?q=SELECT modified FROM album WHERE owner='.$ownerID.' AND modified >'.$latestDateTime;
 //			fb_logdebug('CheckForNewAlbums: fql : '.$fqlStr);
 /*			$albumDates = $this->facebook->api('/fql?q=SELECT+modified+FROM+album+WHERE+owner='.$ownerID.'+AND+modified>'.$latestDateTime);
 			if(Count($albumDates) > 0)
@@ -382,7 +457,14 @@ function CheckForNewAlbums() {
 			{
 				fb_logdebug('CheckForNewAlbums: No dates');
 			}			*/
-			$albumIDs = $this->facebook->api('/fql?q=SELECT+aid+FROM+album+WHERE+owner='.$ownerID.'+AND+modified>'.$latestDateTime);
+			try
+			{
+				$albumIDs = $this->facebook->api('/fql?q=SELECT+aid+FROM+album+WHERE+owner='.$ownerID.'+AND+modified>'.$latestDateTime);
+			}
+			catch(Exception $e)
+			{
+				fb_logdebug('FB Gallery CheckForNewAlbums : albumIDs Exception: '.$e->getMessage());
+			}
 			$newAlbums = count($albumIDs['data']);
 			if($newAlbums > 0)
 			{
@@ -459,18 +541,37 @@ function CountNewAlbums() {
 		$totalAlbums = $this->CountAlbums(0);		
 		$albums = fb_get_album();
 		$totalStoredAlbums = count($albums);
+//		fb_logdebug('CountNewAlbums : totalStoredAlbums : '.$totalStoredAlbums);
 		if($totalStoredAlbums > 0 )
 		{
 			$latestDateStr =  fb_GetLastAlbumUpDate();
+//		fb_logdebug('CountNewAlbums : latestDateStr : '.$latestDateStr);
 			$latestDateTime = fb_StrToTime($latestDateStr); 
+//		fb_logdebug('CountNewAlbums : latestDateTime : '.$latestDateTime);
 			$options = get_option('fbgallery_plugin_options');
-    	$fbPgID = $options['fb_fan_page_url'];
-    	if (substr($fbPgID, -1)=='/') $fbPgID = substr($fbPgID, 0, -1);  $fbPgID = substr(strrchr($fbPgID, "/"), 1);
-			$profile = $this->facebook->api("/".$fbPgID);
+    	$fbPgID = trim($options['fb_fan_page_url']);
+    	if (substr($fbPgID, -1)=='/') $fbPgID = substr($fbPgID, 0, -1);  
+    		$fbPgID = substr(strrchr($fbPgID, "/"), 1);
+    	try
+    	{
+				$profile = $this->facebook->api("/".urlencode($fbPgID));
+			}
+			catch(Exception $e)
+			{
+				fb_logdebug('FB Gallery CountNewAlbums profile : Exception: '.$e->getMessage());
+			}
 			$ownerID = $profile['id'];
-
-			$albumIDs = $this->facebook->api('/fql?q=SELECT+aid+FROM+album+WHERE+owner='.$ownerID.'+AND+modified>'.$latestDateTime);
+//		fb_logdebug('CountNewAlbums : ownerID : '.$ownerID);
+			try
+			{
+				$albumIDs = $this->facebook->api('/fql?q=SELECT+aid+FROM+album+WHERE+owner='.$ownerID.'+AND+modified>'.$latestDateTime);
+			}
+			catch(Exception $e)
+			{
+				fb_logdebug('FB Gallery CountNewAlbums Album ids : Exception: '.$e->getMessage());
+			}
 			$newAlbums = count($albumIDs['data']);
+//		fb_logdebug('CountNewAlbums : newAlbums : '.$newAlbums);
 			return $newAlbums;
 		}
 		else
@@ -487,6 +588,7 @@ function update_albums($recent = false)
 {
 		global $wpdb;
 
+fb_logdebug('update_albums : start');
 		$this->increase_time_limit();
 	$fb_maxtime=ini_get('max_execution_time');
 	ini_get('max_execution_time');
@@ -519,13 +621,17 @@ function update_albums($recent = false)
 				$latestDateTime = fb_StrToTime($latestDateStr); 
 				$totalAlbums =  $this->CountNewAlbums();
 			}
+			else
+			{
+				$recent = false;
+			}
 		}
 		// Check if there is a configured maximum albums to get.
 		if(($albumsToGet > 0) && ($albumsToGet < $totalAlbums))
 		{
 			$totalAlbums = $albumsToGet;
 		}
-		if($totalAlbums < 100)
+		if(($totalAlbums > 0) && ($totalAlbums < 100))
 		{
 			$percentCount = (int)((100/$totalAlbums));
 			$this->increment = $percentCount;
@@ -538,10 +644,16 @@ function update_albums($recent = false)
 		}
 		$this->update_progress(true);
 		$updatePoint = (int)(($totalAlbums * $percentCount)/100);
+//	fb_logdebug('update_albums : updatePoint : '.$updatePoint);
+//	fb_logdebug('update_albums : totalAlbums : '.$totalAlbums);
+//	fb_logdebug('update_albums : percentCount : '.$percentCount);
 		while(!$finished)
 		{
 			$this->update_keep_alive();
+//	fb_logdebug('update_albums :  getting albums nextPage : '.$nextPage);
 			$albums = $this->TDGetAlbums($nextPage);
+//	fb_logdebug('update_albums :  get albums returned : '.print_r($albums,true));
+//	fb_logdebug('update_albums :  get albums returned count : '.count($albums['data']));
 			if(is_array($albums))
 			{
 				foreach($albums['data'] as $album)
@@ -555,7 +667,10 @@ function update_albums($recent = false)
 					{
 						$albumCreatedTime = ParseDateTime($album['created_time'],true);
 						$albumUpdatedTime = ParseDateTime($album['updated_time'],true);
-						//Need to check update time as facebook returns albums is order of updated time.
+//	fb_logdebug('update_albums recent : albumCreatedTime : '.$albumCreatedTime);
+//	fb_logdebug('update_albums recent : albumUpdatedTime : '.$albumUpdatedTime);
+//	fb_logdebug('update_albums recent : latestDateTime : '.$latestDateTime);
+					//Need to check update time as facebook returns albums is order of updated time.
 						if ($albumUpdatedTime > $latestDateTime)
 						{
 							$checkAlbum = fb_get_album($album['id']);
@@ -563,8 +678,17 @@ function update_albums($recent = false)
 							{
 								if(ParseDateTime($album['updated_time'],true) == fb_StrToTime($checkAlbum['modified']))
 								{
-								// Album exists but is up to date with the facebook version
-									continue;
+									if(fb_count_photos($album['id']) != $album['count']) 
+									{
+										fb_delete_page($checkAlbum['page_id']);
+										$wpdb->query('DELETE FROM `'.FB_PHOTO_TABLE."` WHERE `aid` = '".$checkAlbum['aid']."'");
+										$wpdb->query('DELETE FROM `'.FB_ALBUM_TABLE."` WHERE `aid` = '".$checkAlbum['aid']."'");
+									}
+									else
+									{		
+										// Album exists but is up to date with the facebook version
+										continue;
+									}
 								}
 								else
 								{
@@ -590,8 +714,18 @@ function update_albums($recent = false)
 						{
 							if(ParseDateTime($album['updated_time'],true) == fb_StrToTime($checkAlbum['modified']))
 							{
-								// Album exists but is up to date with the facebook version
-								continue;
+									if(fb_count_photos($album['id'] )!= $album['count']) 
+									{
+//	fb_logdebug('update_albums : count not equal, reload album');
+										fb_delete_page($checkAlbum['page_id']);
+										$wpdb->query('DELETE FROM `'.FB_PHOTO_TABLE."` WHERE `aid` = '".$checkAlbum['aid']."'");
+										$wpdb->query('DELETE FROM `'.FB_ALBUM_TABLE."` WHERE `aid` = '".$checkAlbum['aid']."'");
+									}
+									else
+									{		
+										// Album exists but is up to date with the facebook version
+										continue;
+									}
 							}
 							else
 							{
@@ -604,18 +738,25 @@ function update_albums($recent = false)
 						}
 					}
 					$album_data = $this->FillAlbumData($album);
-					$photoCount = $album['count'];
-					if($photoCount == 0)
+					$photoTotal = $album['count'];
+					if($photoTotal == 0)
 					{
 						continue;
 					}
 					
 					// Once we have the facebook album id we can retrieve the photos from that album
 					$this->update_keep_alive();
-        	$photos = $this->facebook->api("/{$album['id']}/photos");
+					try
+					{
+	        	$photos = $this->facebook->api("/{$album['id']}/photos");
+					}
+					catch(Exception $e)
+					{
+						fb_logdebug('FB Gallery update_albums photos : Exception: '.$e->getMessage());
+					}
 					$ordinal = 1;
 					$photoPostStr = "";
-					while($ordinal <= $photoCount)
+					while($ordinal <= $photoTotal)
 					{
 						if(!is_array($photos['data']))
 						{
@@ -623,10 +764,12 @@ function update_albums($recent = false)
 						}
 						$photoCount = 1;
 						 $wpdb->show_errors();
+//	fb_logdebug('update_albums :  Photos to save : '.count($photos['data']));
 		        foreach($photos['data'] as $photo)
 	  	      {
 	  	      	if(!$this->SavePhotoData($photo, $album, $ordinal,$photoCount))
 	  	      	{
+	fb_logdebug('update_albums :  return');
 	  	      		return;
 	  	      	}
 							$photoPostStr = $photoPostStr.GeneratePostPhotoEntry($photo); // Append the post entry for this photo
@@ -634,12 +777,16 @@ function update_albums($recent = false)
 							$photoCount++;
 							$this->FreeUpMemory();
  						}
- 						// Check of OpenGraph has indicated muliple pages of photo data, if there is we need to retrieve the next page.
+//	fb_logdebug('update_albums :  ordinal : '.$ordinal);
+// 	fb_logdebug('update_albums : photoCount : '.$photoCount);
+						// Check of OpenGraph has indicated muliple pages of photo data, if there is we need to retrieve the next page.
 			  		$photoPaging = $photos['paging'];
 						if(is_array($photoPaging))
 						{
 								$nextPhotoPage = $photoPaging['next'];
 								$idpos = strpos($nextPhotoPage,$album['id']);
+//	fb_logdebug('update_albums : nextPhotoPage : '.$nextPhotoPage);
+//	fb_logdebug('update_albums : album[id] : '.$album['id']);
 								if($idpos === false)
 								{
 									unset($photos);
@@ -651,7 +798,16 @@ function update_albums($recent = false)
 									$untilStr = substr($nextPhotoPage,$idpos,strlen($nextPhotoPage)-$idpos);
 									unset($photos);
 									$this->update_keep_alive();
-		        			$photos = $this->facebook->api($untilStr);
+//	fb_logdebug('update_albums : untilStr : '.$untilStr);
+									try
+									{
+		        				$photos = $this->facebook->api($untilStr);
+								}
+								catch(Exception $e)
+								{
+									fb_logdebug('FB Gallery update_albums photos 2 : Exception: '.$e->getMessage());
+								}
+//	fb_logdebug('update_albums : photos returned : '.count($photos['data']));
 								}
 						}
 						else
@@ -685,6 +841,10 @@ function update_albums($recent = false)
 					$lastID = $album['id'];
 					unset($album);
 					$this->FreeUpMemory();
+        }
+        if($finished)
+        {
+        	break;
         }
   			$index++;
  				
@@ -724,7 +884,6 @@ function update_albums($recent = false)
 		// If Caching is enabled now get the latest 24 images and store them locally to speed up the slideshow.
 		if($this->options['fb_use_cache'] == 'useCache')
 		{
-fb_logdebug('B4: fb_latest_photos');
 			fb_latest_photos($this->options['fb_num_to_cache']);
 		}
 	}
@@ -829,7 +988,7 @@ function fb_initialize() {
 	                        `created` datetime,
 	                        `ordinal` int(11) unsigned NOT NULL default 0,
 									KEY `pid` (`pid`)
-	                      ) TYPE = MyISAM";
+	                      )";
 
 	$album_table_query = "CREATE TABLE `".FB_ALBUM_TABLE."` (
 	                        `aid` varchar(40),
@@ -846,7 +1005,7 @@ function fb_initialize() {
 	                        `hidden` tinyint(1) unsigned NOT NULL default 0,
 	                        `ordinal` int(11) unsigned NOT NULL default 0,
 	                        UNIQUE KEY `aid` (`aid`)
-	                      ) TYPE = MyISAM";
+	                      )";
 
 
 	if(!fb_table_exists(FB_PHOTO_TABLE)) {
@@ -1001,11 +1160,18 @@ function fb_ajax_handler() {
 	// handle update progress request
 	elseif(isset($_POST['progress'])) {
 		$lastKeepAliveTime = get_option('fb_keep_alive_time');
-			if(elapsedTime($lastKeepAliveTime) > $timeOut)
+//fb_logdebug('fb_ajax_handler : timeOut : '.$timeOut);		
+//fb_logdebug('fb_ajax_handler : lastKeepAliveTime : '.$lastKeepAliveTime);		
+//fb_logdebug('fb_ajax_handler : elapsedTime : '.elapsedTime($lastKeepAliveTime));		
+			if(($timeOut > 0) && (elapsedTime($lastKeepAliveTime) > $timeOut))
 			{
+fb_logdebug('fb_ajax_handler : timeOut : '.$timeOut);		
+fb_logdebug('fb_ajax_handler : lastKeepAliveTime : '.$lastKeepAliveTime);		
+fb_logdebug('fb_ajax_handler : Time out : '.elapsedTime($lastKeepAliveTime));		
 				echo "-2";
 				exit;
 			}
+//fb_logdebug('fb_ajax_handler : fb_update_progress : '.get_option('fb_update_progress'));		
 		echo round(get_option('fb_update_progress'));
 	}
 
@@ -1046,6 +1212,17 @@ function fb_albums_page_is_set() {
 	global $wpdb;
 	$options = get_option('fbgallery_settings_section');
 	$fb_albums_page = $options['fb_albums_page'];
+	return $wpdb->get_var("SELECT `ID` FROM `$wpdb->posts` WHERE `ID` = '$fb_albums_page'") ? true : false;
+}function fb_album_content_page_is_set() {
+	global $wpdb;
+	$options = get_option('fbgallery_settings_section');
+	$fb_albums_page = $options['fb_albums_content_page'];
+	return $wpdb->get_var("SELECT `ID` FROM `$wpdb->posts` WHERE `ID` = '$fb_albums_page'") ? true : false;
+}
+function fb_photo_content_page_is_set() {
+	global $wpdb;
+	$options = get_option('fbgallery_settings_section');
+	$fb_albums_page = $options['fb_photo_display'];
 	return $wpdb->get_var("SELECT `ID` FROM `$wpdb->posts` WHERE `ID` = '$fb_albums_page'") ? true : false;
 }
 
@@ -1416,7 +1593,18 @@ function fb_toggle_album_hiding($id) {
 	$wpdb->update(FB_ALBUM_TABLE, array('hidden' => $new), array('aid' => $id));
 	return true;
 }
+function fb_count_photos($album_id = 0){
+	global $wpdb;
+	
+	if(!$album_id)
+		return 0;
+	$query = 'SELECT COUNT( pid ) AS photocount FROM  `'.FB_PHOTO_TABLE.'` WHERE aid = '.$album_id;
+	fb_logdebug('fb_count_photos : query : '.$query);
+	$photos = $wpdb->get_var($query);
+	fb_logdebug('fb_count_photos : count : '.$photos);
 
+	return $photos;
+}
 function fb_get_photos($album_id = 0) {
 	global $wpdb;
 

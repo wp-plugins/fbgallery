@@ -188,6 +188,7 @@ function fb_display_main($content) {
 	return $content;
 }
 
+
 function GetMonthStr($monthNum)
 {
 	switch($monthNum)
@@ -221,51 +222,51 @@ function GetMonthStr($monthNum)
 	}
 }
 
-function fb_display_album($content, $page_id) {
+function fb_display_photo() {
+global $wp_query;
 	// turn off content filter so that <p> and <br> tags aren't added
+fb_logdebug('fb_display_photo : start : ');
 	remove_filter('the_content','wpautop');
 
 	// buffer the output
 	ob_start();
 
-	$options = get_option('fbgallery_settings_section');
-	$albums_page_link = htmlentities(get_permalink($options['fb_albums_page']));
-	$page_link = get_permalink($page_id);
-	$album_id = fb_get_album_id($page_id);
-	$album = fb_get_album($album_id);
-	$photos = fb_get_photos($album_id);
-	$photo_count = sizeof($photos);
-	if($photo_count == 0) {
-		echo '<p>This album is empty.</p>';
-		return false;
+	// get photos
+	if (!isset($wp_query->query_vars['fb_album']))
+	{
+  	return;
 	}
+	$extendedPagination = false;
+	$locAlbumID = $wp_query->query_vars['fb_album'];
+fb_logdebug('fb_display_photo : locAlbumID : '.$locAlbumID);
+	$photos = fb_get_photos($locAlbumID);
+//fb_logdebug('fb_display_photo : photos : '.print_r($photos,true));
+	$photo_count = count($photos);
+fb_logdebug('fb_display_photo : photos count : '.count($photos));
 	array_unshift($photos, ''); // moves all the keys down
 	unset($photos[0]);
 
-	// check if page is hidden
-	if($album['hidden'] == 1) {
-		$message = '<p>This album is not available. <a href="'.get_permalink($options['fb_albums_page']).'">Return to albums</a>.</p>';
-		return $message.$content;
+	// pagination
+	$options = get_option('fbgallery_settings_section');
+	$page_id = $options['fb_photo_display'];
+	$page_link = get_permalink($page_id);
+	$albums_page_link = get_permalink($options['fb_albums_page']);
+		// determine pagination
+	$photos_per_page = $options['fb_albums_per_page'];
+fb_logdebug('fb_display_photo : photos_per_page : '.$photos_per_page);
+	if($photos_per_page == 0) {
+		$photos_per_page = 50;
 	}
-
-	// html encode all captions
-	foreach($photos as $key=>$photo) {
-		$photos[$key]['caption'] = function_exists('seems_utf8') && seems_utf8($photo['caption'])
-															 ? htmlentities($photo['caption'], ENT_QUOTES, 'utf-8')
-															 : htmlentities($photo['caption'], ENT_QUOTES);
+	if($photos_per_page> 0)
+	{
+		$page_count = ceil($photo_count / $photos_per_page);
 	}
-
-	$thumb_size = $options['fb_thumb_size'];
-	$number_cols = $options['fb_number_cols'];
-	$number_rows = $options['fb_number_rows'] == 0 ? ceil($photo_count / $number_cols) : $options['fb_number_rows'];
-	$photos_per_page = $number_cols * $number_rows;
-
-	$page_count = ceil($photo_count / $photos_per_page);
-	$curr_page = ($_GET['album_p'] <= $page_count) && ($_GET['album_p'] > 0) ? $_GET['album_p'] : 1;
-	$first_photo = ($curr_page - 1) * $photos_per_page + 1;
+	$curr_page = $_GET['photo'] <= $page_count && $_GET['photo'] > 0 ? $_GET['photo'] : 1;
+fb_logdebug('fb_display_photo : $curr_page : '.$curr_page);
+	$first_photo = (($curr_page-1) * $photos_per_page) + 1;
+fb_logdebug('fb_display_photo : $first_photo : '.$first_photo);
 	$last_photo = $first_photo + $photos_per_page - 1;
 	$last_photo = $last_photo > $photo_count ? $photo_count : $last_photo;
-	$rows_curr_page = ceil(($last_photo - $first_photo + 1) / $number_cols);
 
 	// generate pagination
 	if($page_count == 1) {
@@ -273,64 +274,42 @@ function fb_display_album($content, $page_id) {
 	} else {
 		$prev_link = $curr_page > 1 ? $curr_page - 1 : false;
 		if($prev_link !== false)
-			$prev_link = $page_link.(strstr($page_link, '?') ? '&amp;album_p='.($prev_link) : '?album_p='.($prev_link));
-		$next_link = $curr_page < $page_count ? $curr_page + 1 : null;
-		if($next_link)
-			$next_link = $page_link.(strstr($page_link, '?') ? '&amp;album_p='.($next_link) : '?album_p='.($next_link));
+			$prev_link = $page_link.(strstr($album_link, '?') ? '&amp;fb_album='.$locAlbumID.'&amp;photo='.($prev_link) : '?fb_album='.$locAlbumID.'&amp;photo='.($prev_link));
+		$next_page = $curr_page + 1 <= $page_count ? $curr_page + 1 : false;
+		if($next_page)
+			$next_link = $page_link.(strstr($page_link, '?') ? '&amp;fb_album='.$locAlbumID.'&amp;photo='.($next_page) : '?fb_album='.$locAlbumID.'&amp;photo='.($next_page));
+fb_logdebug('fb_display_photo : $next_link : '.$next_link);
 		$pagination = '';
-		for($i = 1; $i <= $page_count; $i++) {
-			if($i == $curr_page)
-				$pagination .= '<b>'.$i.'</b>';
-			else {
-				$link = $page_link.(strstr($page_link, '?') ? '&amp;album_p='.$i : '?album_p='.$i);
-				$pagination .= "<a href='$link'>".($i)."</a>";
+		if($page_count <= 30){
+			for($i = 1; $i <= $page_count; $i++) {
+				if($i == $curr_page)
+					$pagination .= '<b>'.$i.'</b>';
+				else {
+					$link = $page_link.(strstr($page_link, '?') ? '&amp;fb_album='.$locAlbumID.'&amp;photo='.$i : '?fb_album='.$locAlbumID.'&amp;photo='.$i);
+					$pagination .= "<a href='$link'>".($i)."</a>";
+				}
 			}
+		}
+		else
+		{
+			$extendedPagination = true;
+			$optionLine = '';
+			for($i = 1; $i <= $page_count; $i++) {
+				$link = $page_link.(strstr($page_link, '?') ? '&amp;fb_album='.$locAlbumID.'&amp;photo='.$i : '?fb_album='.$locAlbumID.'&amp;photo='.$i);
+				if($i == $curr_page)
+				{
+					$optionLine .=  '<option value="'.$link.'" selected="selected">page '.$i.'</option>';
+				}
+				else
+				{
+					$optionLine .= '<option value="'.$link.'">page '.$i.'</option>';
+				}
+			}
+	
 		}
 	}
 
-	// album info
-	$description = $album['description'];
-	$location = $album['location'];
-
-	// add hidden links for all images before so that next and previous
-	// buttons in lightbox will display these images as well
-	$hidden_top = ''; $hidden_bottom = '';
-	for($i = 1; $i < $first_photo; $i++) {
-		$hidden_top .= "<a href=\"{$photos[$i]['src_big']}\" rel=\"fotobook\" title=\"{$photos[$i]['caption']}\"></a>";
-	}
-	for($i = $last_photo+1; $i <= $photo_count; $i++) {
-		$hidden_bottom .= "<a href=\"{$photos[$i]['src_big']}\" rel=\"fotobook\" title=\"{$photos[$i]['caption']}\"></a>";
-	}
-
-	// now get rid of all photos in the array that aren't displayed on this page
-	$photos = array_slice_preserve_keys($photos, $first_photo-1, $photos_per_page);
-
-	?>
-	<br />
-	<p style="display: none"><?php echo $hidden_top ?></p>
-	<?php include(FB_STYLE_PATH.'album.php') ?>
-	<p style="display: none"><?php echo $hidden_bottom ?></p>
-<?php
-	$content .= ob_get_clean();
-	return $content;
-}
-
-function fb_display_photo($content, $page_id, $photo) {
-	// turn off content filter so that <p> and <br> tags aren't added
-	remove_filter('the_content','wpautop');
-
-	// buffer the output
-	ob_start();
-
-	// get photos
-	$photos = fb_get_photos(fb_get_album_id($page_id));
-	$photo_count = sizeof($photos);
-	array_unshift($photos, ''); // moves all the keys down
-	unset($photos[0]);
-
-	// pagination
-	$page_link = get_permalink($page_id);
-	$curr = ($photo <= $photo_count && $photo > 0) ? $photo : 1;
+/*	$curr = ($photo <= $photo_count && $photo > 0) ? $photo : 1;
 	$next = ($curr + 1 <= $photo_count) ? $curr + 1 : false;
 	$prev = ($curr != 1) ? $curr - 1 : false;
 	if($next)
@@ -343,16 +322,21 @@ function fb_display_photo($content, $page_id, $photo) {
 	$photo['caption'] = function_exists('seems_utf8') && seems_utf8($photo['caption'])
 											? htmlentities($photo['caption'], ENT_QUOTES, 'utf-8')
 											: htmlentities($photo['caption'], ENT_QUOTES);
-
+*/
+	$photos = array_slice_preserve_keys($photos, $first_photo-1, $photos_per_page);
+	
 	// get max width
 	$options = get_option('fbgallery_settings_section');
 	$width = $options['fb_embedded_width'];
+fb_logdebug('fb_display_photo : include photo.php');
 
-	include(FB_STYLE_PATH.'photo.php');
+	include(FB_STYLE_PATH.'photos.php');
 
 	$content .= ob_get_clean();
 	return $content;
 }
+add_shortcode('fb_album_content', 'fb_display_photo');
+
 
 function fb_display_manage_list($message = '') {
 	$albums = fb_get_album();
@@ -362,9 +346,18 @@ function fb_display_manage_list($message = '') {
 	<?php endif; ?>
 
 	<?php if($albums) { ?>
+	<p>Only the last 50 albums are shown</p>
 	<ul id="fb-manage-list">
 		<?php
-		for($i = 0; $i < count($albums); $i++):
+		if(count($albums) > 50)
+		{
+			$albumCount = 50;
+		}
+		else
+		{
+			$albumCount = count($albums);
+		}
+		for($i = 0; $i < $albumCount; $i++):
 		$album = $albums[$i];
 		$thumb = fb_get_photo($album['cover_pid'], 'small');
 		$class = ($album['hidden'] == 1) ? 'disabled' : '';
@@ -447,5 +440,12 @@ function fb_display_styles() {
 //	if ((is_active_widget(false, false,'fbg_thumbnail_widget')) || (is_active_widget(false, false,'fbg_photos_widget'))) {
 		wp_enqueue_style('fbgallery-widget', FB_PLUGIN_URL . 'styles/sidebar-style.css');
 //	}
+}
+function fb_get_page_slug( $id ) {
+	if($id==null)
+		$id=$post->ID;
+	$post_data = get_post($id, ARRAY_A);
+	$slug = $post_data['post_name'];
+	return site_url().'/'.$slug; 
 }
 ?>

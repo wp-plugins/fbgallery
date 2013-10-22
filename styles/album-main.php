@@ -75,8 +75,18 @@ if(sizeof($albums) > 0):
 						<div class="thumbnail" style="height: 180px; width: 180px">
 						<table>  
 									<tr>
-										<td>  
-	      						<a href="<?php echo $album['link'] ?>"><img src="<?php echo $album['thumb'] ?>"  alt="<?php echo $titleStr ?>" longDesc="<?php echo $albumImgSrc ?>"  class="popview" /></a>
+										<td> 
+											<?php	$options = get_option('fbgallery_settings_section');
+												if ($options['fb_use_album_content_page'] == 'use_album_content_page'):
+													$page_id = $options['fb_photo_display'];
+													$page_link = get_permalink($page_id);
+													$album_link = $page_link.(strstr($page_link, '?') ? '&amp;fb_album='.$album['aid'] : '?fb_album='.$album['aid']);
+
+											?>
+			      						<a href="<?php echo $album_link ?>"><img src="<?php echo $album['thumb'] ?>"  alt="<?php echo $titleStr ?>" longDesc="<?php echo $albumImgSrc ?>"  class="popview" /></a>
+											<?php else : ?>
+			      						<a href="<?php echo $album['link'] ?>"><img src="<?php echo $album['thumb'] ?>"  alt="<?php echo $titleStr ?>" longDesc="<?php echo $albumImgSrc ?>"  class="popview" /></a>
+			      					<?php endif; ?>
 	      					</td>
 	      					</tr> 
 	      					<tr> 

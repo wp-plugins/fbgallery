@@ -2,18 +2,34 @@
 function SetupFBConnection()
 {
     fb_logdebug("fbconfig : SetupFBConnection : Start");
-    $fbconfig['appid' ]  = get_option('fb_app_id'); //$app_id;
-    $fbconfig['secret']  = get_option('fb_app_secret'); //$app_secret;
-
+ 		$options = get_option('fbgallery_plugin_options');
+    $fbconfig['appid' ]  = $options['fb_app_id']; //get_option('fb_app_id'); //$app_id;
+    $fbconfig['secret']  = $options['fb_app_secret']; //$app_secret;
+   fb_logdebug("fbconfig : SetupFBConnection : fb_app_id : ".$options['fb_app_id']);
+   fb_logdebug("fbconfig : SetupFBConnection : fb_app_secret : ".$options['fb_app_secret']);
+   fb_logdebug("fbconfig : SetupFBConnection : authtoken : ".get_option('fbAppAuthToken'));
+ 
     // Create our Application instance.
     $facebook = new FBG_Facebook(array(
       'appId'  => $fbconfig['appid'],
       'secret' => $fbconfig['secret'],
       'cookie' => true,
     ));
-		if(get_option('fbAppAuthToken'))
+		if(get_option('fbAppAuthToken') != '')
 		{
-    	$facebook -> setAccessToken(get_option('fbAppAuthToken'));
+			$locAccessToken = get_option('fbAppAuthToken');
+			$locPos = strpos($locAccessToken,'authtoken');
+			if($locPos !== false)
+			{
+				$subAccessToken = substr($locAccessToken,$locPos,strlen('authtoken'));
+   			fb_logdebug("fbconfig : SetupFBConnection : subAccessToken : ".$subAccessToken);
+     		$facebook -> setAccessToken($subAccessToken);
+			}
+			else
+			{
+   			fb_logdebug("fbconfig : SetupFBConnection : authtoken : ".get_option('fbAppAuthToken'));
+     		$facebook -> setAccessToken(get_option('fbAppAuthToken'));
+    	}
   	}
 
  
@@ -27,14 +43,14 @@ function SetupFBConnection()
  
     // Session based graph API call.
     $uid = $facebook->getUser();
-    fb_logdebug("fbconfig : $uid : ".$uid);
+    fb_logdebug('fbconfig : $uid : '.$uid);
   	if ($uid) 
   	{
       try 
       {
         // Proceed knowing you have a logged in user who's authenticated.
         $user_profile = $facebook->api('/me');
-//    	 	fb_logdebug("fbconfig : user_profile : ".print_r($user_profile,true));
+    	 	fb_logdebug("fbconfig : user_profile : ".print_r($user_profile,true));
 //        $other_profile = $facebook->api('/traveldaily');
 //     		fb_logdebug("fbconfig : other_profile : ".print_r($other_profile,true));
 //     		fb_logdebug("fbconfig : SetupFBConnection : Next");
@@ -45,6 +61,12 @@ function SetupFBConnection()
       }
       fb_logdebug("fbconfig : SetupFBConnection : OK");
   	}
+  	else
+  	{
+  			update_option('fbAppAuthToken','');
+  			update_option('fbAppAuthUser','');
+				update_option('fbAppPageAuthToken','');
+		}
  
     fb_logdebug("fbconfig : SetupFBConnection : Finish");
     return $facebook;
